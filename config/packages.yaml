@@ -1,0 +1,21 @@
+packages:
+  - name: flask
+    github: pallets/flask
+
+  - name: django
+    github: django/django
+
+  - name: requests
+    github: psf/requests
+
+  - name: roundcubemail
+    github: roundcube/roundcubemail
+
+  - name: numpy
+    github: numpy/numpy
+
+  - name: mcp-server-elasticsearch
+    github: elastic/mcp-server-elasticsearch
+
+  - name: odysseue
+    github: pewdiepie-archdaemon/odysseus

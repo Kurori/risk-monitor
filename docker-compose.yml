@@ -1,0 +1,67 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: risk_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: risk_backend
+    ports:
+      - "8000:8000"
+    environment:
+      MONGODB_URL: mongodb://mongodb:27017
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - ./config:/app/config:ro
+      - ./processing:/app/processing:ro
+      - ./ingestion:/app/ingestion:ro
+
+  frontend:
+    build: ./frontend
+    container_name: risk_frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+  ingestion:
+    build: ./ingestion
+    container_name: risk_ingestion
+    environment:
+      MONGODB_URL: mongodb://mongodb:27017
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - ./config:/app/config:ro
+    profiles:
+      - tools
+
+  processing:
+    build: ./processing
+    container_name: risk_processing
+    environment:
+      MONGODB_URL: mongodb://mongodb:27017
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    profiles:
+      - tools
+
+volumes:
+  mongo_data:
